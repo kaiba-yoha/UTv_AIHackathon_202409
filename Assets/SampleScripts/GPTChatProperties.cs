@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 
 [Serializable]
@@ -17,6 +18,28 @@ public class GPTChatBody
     public float top_p;
     public float frequency_penalty;
     public float presence_penalty;
+    public ResponseFormat response_format;
+}
+
+public class ResponseFormat
+{
+    public string type = "json_schema";
+    public JsonSchema json_schema;
+}
+
+public class JsonSchema
+{
+    public bool strict = true;
+    public string name;
+    public JsonSchemaRoot schema;
+}
+
+public class JsonSchemaRoot
+{
+    public string type = "object";
+    public object properties;
+    public string[] required;
+    public bool additionalProperties;
 }
 
 [Serializable]

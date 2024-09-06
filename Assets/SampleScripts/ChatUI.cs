@@ -17,14 +17,22 @@ public class ChatUI : MonoBehaviour
     [SerializeField]
     Text text;
 
-    [SerializeField]
+    [SerializeField,Multiline]
     string systemPrompt;
+
+    List<GPTChatMessage> messages=new List<GPTChatMessage>();
+
+    private void Awake()
+    {
+        messages.Add(new GPTChatMessage { content = systemPrompt, role = "system" });
+    }
 
     public async void Send()
     {
-        var res = await textGenerator.GetGPTResponse(new GPTChatMessage[] {
-            new GPTChatMessage {content=systemPrompt,role="system"},
-            new GPTChatMessage { content = InputField.text, role = "user" } });
+        messages.Add(new GPTChatMessage { content = InputField.text, role = "user" });
+        var res = await textGenerator.GetGPTResponse(messages.ToArray());
+        messages.Add(new GPTChatMessage { content = res, role = "assistant" });
+        
 
         text.text = res;
     }
@@ -35,9 +43,13 @@ public class ChatUI : MonoBehaviour
         public string content;
     }
 
-    public void GetJson()
+    public async void GetJson()
     {
         var str = new JsonResponse { name = "gpt", content = "hello world" };
-        jsonGenerator.SendMessageToAPI(InputField.text, str, (t) => { text.text = JsonUtility.ToJson(t); });
+        var res= await jsonGenerator.GetGPTResponse(
+            new GPTChatMessage[] {
+            new GPTChatMessage {content=systemPrompt, role="system"},
+            new GPTChatMessage { content = InputField.text, role = "user" } }, str,new string[] {"name","content"});
+        Debug.Log(res);
     }
 }
