@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -9,28 +10,17 @@ public class GPTJsonGenerator : MonoBehaviour
     [SerializeField] private string apiKey; // OpenAIのAPIキー
     [SerializeField] private string apiUrl = "https://api.openai.com/v1/chat/completions";
     [SerializeField] private string model = "gpt-4o-2024-08-06"; // Structured Outputsをサポートするモデル
-    [SerializeField] private InputField userInputField;
-    [SerializeField] private Text responseText;
 
-
-    [System.Serializable]
-    public class StructuredResponse
+    public void SendMessageToAPI<T>(string userMessage,T structure, Action<T> callback)
     {
-        public string key1; // JSONスキーマに基づくキー
-        public string key2; // JSONスキーマに基づくキー
+        StartCoroutine(SendRequest(userMessage, structure, callback));
     }
 
-    public void SendMessageToAPI()
-    {
-        string userMessage = userInputField.text;
-        StartCoroutine(SendRequest(userMessage));
-    }
-
-    private IEnumerator SendRequest(string userMessage)
+    private IEnumerator SendRequest<T>(string userMessage,T structure, Action<T> callback)
     {
         Message userMsg = new Message { role = "user", content = userMessage };
         List<Message> messages = new List<Message> { userMsg };
-        RequestBody chatRequest = new RequestBody { model = model, messages = messages, response_format="structured" };
+        RequestBody chatRequest = new RequestBody { model = model, messages = messages, response_format =JsonUtility.ToJson(structure) };
 
         string jsonData = JsonUtility.ToJson(chatRequest);
 
@@ -51,8 +41,8 @@ public class GPTJsonGenerator : MonoBehaviour
             else
             {
                 string responseJson = request.downloadHandler.text;
-                StructuredResponse structuredResponse = JsonUtility.FromJson<StructuredResponse>(responseJson);
-                responseText.text = $"Key1: {structuredResponse.key1}, Key2: {structuredResponse.key2}";
+                T structuredResponse = JsonUtility.FromJson<T>(responseJson);
+                callback(structuredResponse);
             }
         }
     }

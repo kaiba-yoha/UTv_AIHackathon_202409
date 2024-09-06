@@ -26,5 +26,5 @@ public class RequestBody
 {
     public string model = "gpt-4o";
     public List<Message> messages;
-    public string response_format = "structured"; // Structured Outputs‚ğw’è
+    public string response_format; // Structured Outputs‚ğw’è
 }
